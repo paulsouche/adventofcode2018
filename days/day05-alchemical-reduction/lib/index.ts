@@ -1,21 +1,12 @@
 export const units = (input: string) => {
-  while (true) {
-    let i;
-    const ilen = input.length;
-
-    for (i = 0; i < ilen; i++) {
-      const monomer1 = input.charAt(i);
-      const monomer2 = input.charAt(i + 1);
-      if ((monomer1 !== monomer2) && (monomer1.toLowerCase() === monomer2.toLowerCase())) {
-        input = input.slice(0, i) + input.slice(i + 2);
-        break;
-      }
-    }
-
-    if (ilen === input.length) {
-      break;
+  for (let i = 0; i < input.length - 1; i++) {
+    const asciiPairDiff = Math.abs(input.charCodeAt(i) - input.charCodeAt(i + 1));
+    if (asciiPairDiff === 32) {
+      input = `${input.slice(0, i)}${input.slice(i + 2)}`;
+      i -= 2;
     }
   }
+
   return input.length;
 };
 
