@@ -48,17 +48,22 @@ function computeManhattanDistance(point1: Point, point2: Point) {
   return Math.abs(point1.x - point2.x) + Math.abs(point1.y - point2.y);
 }
 
-function findMinManhattanCoordinates(point: Point, map: {
+function computeArea(point: Point, map: {
   [coordinates: string]: Point;
 }) {
-  const key = `${point.x},${point.y}`;
-  if (map[key]) {
-    return key;
+  const coordinates = Object.keys(map);
+  let minManhattanCoordinates = `${point.x},${point.y}`;
+  let coordinatesDistanceSum = 0;
+  if (map[minManhattanCoordinates]) {
+    return {
+      coordinatesDistanceSum: coordinates
+        .reduce((p, n) => p += computeManhattanDistance(point, map[n]), 0),
+      minManhattanCoordinates,
+    };
   }
 
   let minManhattanDistance = Infinity;
-  let minManhattanCoordinates: string | undefined;
-  Object.keys(map)
+  coordinates
     .forEach((k) => {
       const val = map[k];
       const manhattanDistance = computeManhattanDistance(map[k], point);
@@ -70,13 +75,18 @@ function findMinManhattanCoordinates(point: Point, map: {
         minManhattanDistance = manhattanDistance;
         minManhattanCoordinates = `${val.x},${val.y}`;
       }
+
+      coordinatesDistanceSum += manhattanDistance;
     });
 
   if (!minManhattanCoordinates) {
-    throw new Error(`Cannot compute min manhattan distance for ${key}`);
+    throw new Error(`Cannot compute min manhattan distance for ${point.x},${point.y}`);
   }
 
-  return minManhattanCoordinates;
+  return {
+    coordinatesDistanceSum,
+    minManhattanCoordinates,
+  };
 }
 
 export default (input: string[], maxDistance = 0) => {
@@ -97,18 +107,18 @@ export default (input: string[], maxDistance = 0) => {
       x: i % (maxX + 1),
       y: Math.floor(i / (maxX + 1)),
     };
-    const manhattanCoordinates = findMinManhattanCoordinates(point, map);
+    const {
+      minManhattanCoordinates,
+      coordinatesDistanceSum,
+    } = computeArea(point, map);
 
-    grid.push(manhattanCoordinates);
+    grid.push(minManhattanCoordinates);
 
     if (point.x === 0 || point.y === 0 || point.y === maxY || point.x === maxX) {
-      if (!infiniteAreas.includes(manhattanCoordinates)) {
-        infiniteAreas.push(manhattanCoordinates);
+      if (!infiniteAreas.includes(minManhattanCoordinates)) {
+        infiniteAreas.push(minManhattanCoordinates);
       }
     }
-
-    const coordinatesDistanceSum = coordinates
-      .reduce((p, n) => p += computeManhattanDistance(point, map[n]), 0);
 
     if (coordinatesDistanceSum < maxDistance) {
       safestArea++;
