@@ -1,11 +1,5 @@
 const partyReg = /^(\d+)\splayers;\slast\smarble\sis\sworth\s(\d+)\spoints$/;
 
-interface Marble {
-  next: Marble;
-  prev: Marble;
-  value: number;
-}
-
 function strToParty(input: string, coeff: number) {
   const match = partyReg.exec(input);
 
@@ -19,27 +13,31 @@ function strToParty(input: string, coeff: number) {
   };
 }
 
-const addAfter = (value: number, marble: Marble) => {
-  const toAdd = {
-    next: marble.next,
-    prev: marble,
-    value,
-  };
-  marble.next.prev = toAdd;
-  marble.next = toAdd;
-  return toAdd;
-};
+class Marble {
+  constructor(public value: number, private _next?: Marble, private _prev?: Marble) { }
+
+  get next() {
+    return this._next || this;
+  }
+
+  set next(marble: Marble) {
+    this._next = marble;
+  }
+
+  get prev() {
+    return this._prev || this;
+  }
+
+  set prev(marble: Marble) {
+    this._prev = marble;
+  }
+}
 
 export default (input: string, coeff = 1) => {
   const { marbles, players } = strToParty(input, coeff);
   const scores = new Array(players).fill(0);
 
-  let current: Marble = {
-    value: 0,
-  } as any;
-
-  current.next = current;
-  current.prev = current;
+  let current = new Marble(0);
 
   let marble: number;
   let player = 0;
@@ -51,7 +49,10 @@ export default (input: string, coeff = 1) => {
       current.prev.prev.next = current;
       current.prev = current.prev.prev;
     } else {
-      current = addAfter(marble, current.next);
+      const next = new Marble(marble, current.next.next, current.next);
+      current.next.next.prev = next;
+      current.next.next = next;
+      current = next;
     }
 
     player = ++player % players;
